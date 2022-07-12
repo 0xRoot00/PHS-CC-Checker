@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en-gb" dir="ltr">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title></title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <h1>PH Squad CC Checker</h1>
+        <div id="cc_box">
+            <textarea rows="10" cols="40" id="cc"></textarea>
+            <button onclick="check()">Submit</button>
+        </div>
+        <div id="result_box">
+            <h3 id="sc">Success : <b id="s_count"></b></h3>
+            <div id="success"></div>
+            <h3 id="fd">Failed : <b id="f_count"></b></h3>
+            <div id="failed"></div>
+        </div>
+
+        <script>
+            let success = 0;
+            let failed = 0;
+            const check = ()=>{
+                const cc = document.querySelector('#cc').value.split('\n');
+                cc.forEach(dt => {
+                    const cd = dt.split('|');
+                    fetch('http://localhost:3000', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body : JSON.stringify({
+                            number : cd[0],
+                            exp_month : cd[1],
+                            exp_year : cd[2],
+                            cvc : cd[3]
+                        })
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            const dd = `${cd[0]}|${cd[1]}|${cd[2]}|${cd[3]} >> `;
+                            if(data.amount_captured){
+                                success++;
+                                document.getElementById('s_count').innerHTML=`${success}`;
+                                document.getElementById('success').innerHTML+=`<p>${dd}charged ${data.amount_captured/100}$</p>`;
+                            }else {
+                                failed++;
+                                document.getElementById('f_count').innerHTML=`${failed}`;
+                                document.getElementById('failed').innerHTML+=`<p>${dd + data.code}</p>`;
+                            }
+
+                        })
+                })
+            }
+        </script>
+    </body>
+</html>
